@@ -1,67 +1,23 @@
-#ifndef GRAPHS_H
-#define GRAPHS_H
-
-#include <stddef.h>
+#include "graphs.h"
+#include <stdlib.h>
 
 /**
- * enum edge_type_e - enumerates different connection types
- * between two vertices
+ * graph_create - Allocates memory for and initializes a graph_t structure
  *
- * @UNIDIRECTIONAL: connection is one way
- * @BIDIRECTIONAL: connection is two ways
+ * Return: A pointer to the newly allocated graph_t structure,
+ *         or NULL if the allocation fails
  */
-typedef enum edge_type_e
+graph_t *graph_create(void)
 {
-	UNIDIRECTIONAL = 0,
-	BIDIRECTIONAL
-} edge_type_t;
+	graph_t *graph;
 
-/* define structure for usage in edge_t */
-typedef struct vertex_s vertex_t;
+	graph = malloc(sizeof(graph_t));
+	if (graph == NULL)
+		return (NULL);
 
-/**
- * struct edge_s - node in the linked list of edges for a given vertex
- *
- * @dest: pointer to the connected vertex
- * @next: pointer to the next edge
- */
-typedef struct edge_s
-{
-	vertex_t *dest;
-	struct edge_s *next;
-} edge_t;
+	graph->nb_vertices = 0;
+	graph->vertices = NULL;
 
-/**
- * struct vertex_s - node in the linked list of vertices
- *
- * @index: index of the vertex in the adjacency list
- * @content: custom data stored in the vertex
- * @nb_edges: number of connections with other vertices
- * @edges: pointer to the head node of the linked list of edges
- * @next: pointer to the next vertex in the graph
- */
-struct vertex_s
-{
-	size_t index;
-	char *content;
-	size_t nb_edges;
-	edge_t *edges;
-	struct vertex_s *next;
-};
-
-/**
- * struct graph_s - graph representation
- *
- * @nb_vertices: number of vertices in the graph
- * @vertices: pointer to the head node of the adjacency list
- */
-typedef struct graph_s
-{
-	size_t nb_vertices;
-	vertex_t *vertices;
-} graph_t;
-
-graph_t *graph_create(void);
-
-#endif /* GRAPHS_H */
+	return (graph);
+}
 
