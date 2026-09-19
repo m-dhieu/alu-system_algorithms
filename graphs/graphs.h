@@ -61,11 +61,15 @@ typedef struct graph_s
 	vertex_t *vertices;
 } graph_t;
 
-/* Task 0 Function Prototype */
+/* Task 0 prototype: Create graph */
 graph_t *graph_create(void);
 
-/* Task 1 Function Prototype */
+/* Task 1 prototype: Add a vertex */
 vertex_t *graph_add_vertex(graph_t *graph, const char *str);
+
+/* Task 2 prototype: Add an edge */
+int graph_add_edge(graph_t *graph, const char *src, const char *dest,
+		   edge_type_t type);
 
 #endif /* GRAPHS_H */
 
