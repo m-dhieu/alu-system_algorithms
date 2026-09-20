@@ -6,17 +6,17 @@
  * vertex_is_visited - Checks whether a vertex has already been visited
  *
  * @visited: Array of visited vertices
- * @nb_vertices: Number of vertices in the graph
+ * @visited_count: Number of vertices already visited
  * @vertex: Vertex to check
  *
  * Return: 1 if the vertex was visited, otherwise 0
  */
-static int vertex_is_visited(vertex_t **visited, size_t nb_vertices,
+static int vertex_is_visited(vertex_t **visited, size_t visited_count,
 			     vertex_t *vertex)
 {
 	size_t i;
 
-	for (i = 0; i < nb_vertices; i++)
+	for (i = 0; i < visited_count; i++)
 	{
 		if (visited[i] == vertex)
 			return (1);
@@ -48,7 +48,7 @@ static void depth_first_recursive(vertex_t *vertex, size_t depth,
 	if (vertex == NULL || *visited_count >= graph->nb_vertices)
 		return;
 
-	if (vertex_is_visited(visited, graph->nb_vertices, vertex))
+	if (vertex_is_visited(visited, *visited_count, vertex))
 		return;
 
 	visited[*visited_count] = vertex;
@@ -86,7 +86,7 @@ size_t depth_first_traverse(const graph_t *graph,
 	if (graph == NULL || graph->vertices == NULL || action == NULL)
 		return (0);
 
-	visited = malloc(sizeof(vertex_t *) * graph->nb_vertices);
+	visited = calloc(graph->nb_vertices, sizeof(vertex_t *));
 	if (visited == NULL)
 		return (0);
 
