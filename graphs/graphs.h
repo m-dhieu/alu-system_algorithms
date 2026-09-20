@@ -61,18 +61,23 @@ typedef struct graph_s
 	vertex_t *vertices;
 } graph_t;
 
-/* Task 0 prototype: Create graph */
+/* PROTOTYPES */
+/* Task 0: Create graph */
 graph_t *graph_create(void);
 
-/* Task 1 prototype: Add a vertex */
+/* Task 1: Add a vertex */
 vertex_t *graph_add_vertex(graph_t *graph, const char *str);
 
-/* Task 2 prototype: Add an edge */
+/* Task 2: Add an edge */
 int graph_add_edge(graph_t *graph, const char *src, const char *dest,
-		   edge_type_t type);
+	edge_type_t type);
 
-/* Task 3 prototype: Delete graph */
+/* Task 3: Delete graph */
 void graph_delete(graph_t *graph);
+
+/* Task 4: DFS*/
+size_t depth_first_traverse(const graph_t *graph,
+	void (*action)(const vertex_t *v, size_t depth));
 
 #endif /* GRAPHS_H */
 
