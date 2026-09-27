@@ -41,6 +41,8 @@ heap_t *heap_create(int (*data_cmp)(void *, void *));
 binary_tree_node_t *binary_tree_node(binary_tree_node_t *parent, void *data);
 /*Task 2: Insert a value in a Min Binary Heap */
 binary_tree_node_t *heap_insert(heap_t *heap, void *data);
+/* Task 3: Extract the root value of a Min Binary Heap */
+void *heap_extract(heap_t *heap);
 
 #endif
 
