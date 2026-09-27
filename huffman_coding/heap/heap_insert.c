@@ -12,7 +12,7 @@ static binary_tree_node_t *get_parent_for_insert(binary_tree_node_t *root)
 {
 	binary_tree_node_t *node;
 	binary_tree_node_t *parent;
-	size_t depth, height, i;
+	size_t depth, height;
 
 	/* Compute height */
 	height = 0;
