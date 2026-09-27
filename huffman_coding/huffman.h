@@ -31,6 +31,8 @@ typedef struct symbol_s
 symbol_t *symbol_create(char data, size_t freq);
 /* Task 6: Create a Huffman priority queue */
 heap_t *huffman_priority_queue(char *data, size_t *freq, size_t size);
+/* Task 7: Extract two nodes and insert their combined node */
+int huffman_extract_and_insert(heap_t *priority_queue);
 
 #endif
 
