@@ -27,7 +27,9 @@ static int symbol_cmp(void *p1, void *p2)
 	if (symbol1->freq > symbol2->freq)
 		return (1);
 
-	return (0);
+	// return (0);
+	/* Tie-breaker: order by character value for deterministic results */
+    return (symbol1->data - symbol2->data);
 }
 
 /**
