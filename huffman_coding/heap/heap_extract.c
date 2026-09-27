@@ -107,51 +107,25 @@ static void heapify_down(heap_t *heap, binary_tree_node_t *node)
 }
 
 /**
- * heap_extract - Extracts the root value of a Min Binary Heap
+ * remove_last_node - Remove last node and return its data
  *
  * @heap: Pointer to the heap
  *
- * Return: Pointer to the data from the root, or NULL on failure
+ * Return: Data from the last node
  */
-void *heap_extract(heap_t *heap)
+static void *remove_last_node(heap_t *heap)
 {
-	void *root_data;
 	binary_tree_node_t *last;
 	binary_tree_node_t *parent_last;
-	binary_tree_node_t *old_root;
+	void *data;
 
-	if (heap == NULL || heap->root == NULL)
-		return (NULL);
-
-	root_data = heap->root->data;
-	old_root = heap->root;
-
-	if (heap->root->left == NULL && heap->root->right == NULL)
-	{
-		/* Only one node */
-		heap->root = NULL;
-		heap->size--;
-		free(old_root);
-		return (root_data);
-	}
-
-	/* Find last node in level-order */
 	last = find_last_node(heap->root);
 	if (last == NULL)
-	{
-		free(old_root);
-		heap->root = NULL;
-		heap->size--;
-		return (root_data);
-	}
+		return (NULL);
 
-	/* Find parent of last node */
+	data = last->data;
 	parent_last = find_parent_of(heap->root, last);
 
-	/* Move last node's data to root */
-	heap->root->data = last->data;
-
-	/* Remove last node from its parent */
 	if (parent_last != NULL)
 	{
 		if (parent_last->left == last)
@@ -163,7 +137,57 @@ void *heap_extract(heap_t *heap)
 	free(last);
 	heap->size--;
 
-	/* Restore heap property */
+	return (data);
+}
+
+/**
+ * extract_single_node - Handle extraction when only root exists
+ *
+ * @heap: Pointer to the heap
+ *
+ * Return: Data from the root
+ */
+static void *extract_single_node(heap_t *heap)
+{
+	void *data;
+
+	data = heap->root->data;
+	free(heap->root);
+	heap->root = NULL;
+	heap->size--;
+
+	return (data);
+}
+
+/**
+ * heap_extract - Extracts the root value of a Min Binary Heap
+ *
+ * @heap: Pointer to the heap
+ *
+ * Return: Pointer to the data from the root, or NULL on failure
+ */
+void *heap_extract(heap_t *heap)
+{
+	void *root_data;
+	void *last_data;
+
+	if (heap == NULL || heap->root == NULL)
+		return (NULL);
+
+	root_data = heap->root->data;
+
+	if (heap->root->left == NULL && heap->root->right == NULL)
+		return (extract_single_node(heap));
+
+	last_data = remove_last_node(heap);
+	if (last_data == NULL)
+	{
+		free(heap->root);
+		heap->root = NULL;
+		return (root_data);
+	}
+
+	heap->root->data = last_data;
 	heapify_down(heap, heap->root);
 
 	return (root_data);
