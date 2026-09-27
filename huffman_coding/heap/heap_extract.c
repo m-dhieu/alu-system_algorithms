@@ -102,7 +102,7 @@ static void heapify_down(heap_t *heap, binary_tree_node_t *node)
 			smallest = left;
 
 		if (right != NULL &&
-		    heap->data_cmp(right->data, smallest->data) <= 0)
+		    heap->data_cmp(right->data, smallest->data) < 0)
 			smallest = right;
 
 		if (smallest == node)
