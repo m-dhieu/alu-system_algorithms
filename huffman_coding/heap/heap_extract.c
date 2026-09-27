@@ -141,25 +141,6 @@ static void *remove_last_node(heap_t *heap)
 }
 
 /**
- * extract_single_node - Handle extraction when only root exists
- *
- * @heap: Pointer to the heap
- *
- * Return: Data from the root
- */
-static void *extract_single_node(heap_t *heap)
-{
-	void *data;
-
-	data = heap->root->data;
-	free(heap->root);
-	heap->root = NULL;
-	heap->size--;
-
-	return (data);
-}
-
-/**
  * heap_extract - Extracts the root value of a Min Binary Heap
  *
  * @heap: Pointer to the heap
@@ -176,8 +157,15 @@ void *heap_extract(heap_t *heap)
 
 	root_data = heap->root->data;
 
+	/* Case: only root node */
 	if (heap->root->left == NULL && heap->root->right == NULL)
-		return (extract_single_node(heap));
+	{
+		root_data = heap->root->data;
+		free(heap->root);
+		heap->root = NULL;
+		heap->size--;
+		return (root_data);
+	}
 
 	last_data = remove_last_node(heap);
 	if (last_data == NULL)
