@@ -2,38 +2,12 @@
 #include "huffman.h"
 
 /**
- * subtree_min_char - Finds the smallest character in a subtree
- *
- * @node: Root of the subtree
- *
- * Return: Smallest character in the subtree
- */
-static char subtree_min_char(binary_tree_node_t *node)
-{
-	char left_char;
-	char right_char;
-	char current_char;
-
-	if (node == NULL || node->data == NULL)
-		return ((char)127);
-
-	current_char = ((symbol_t *)node->data)->data;
-	if (current_char != -1)
-		return (current_char);
-
-	left_char = subtree_min_char(node->left);
-	right_char = subtree_min_char(node->right);
-
-	return (left_char < right_char ? left_char : right_char);
-}
-
-/**
- * symbol_cmp - Compares two nested symbol nodes
+ * symbol_cmp - Compares two nested symbol nodes by frequency
  *
  * @p1: First nested node
  * @p2: Second nested node
  *
- * Return: Negative value, zero, or positive value
+ * Return: Difference between the frequencies
  */
 static int symbol_cmp(void *p1, void *p2)
 {
@@ -41,8 +15,6 @@ static int symbol_cmp(void *p1, void *p2)
 	binary_tree_node_t *node2;
 	symbol_t *symbol1;
 	symbol_t *symbol2;
-	char min1;
-	char min2;
 
 	node1 = (binary_tree_node_t *)p1;
 	node2 = (binary_tree_node_t *)p2;
@@ -53,15 +25,6 @@ static int symbol_cmp(void *p1, void *p2)
 		return (-1);
 
 	if (symbol1->freq > symbol2->freq)
-		return (1);
-
-	min1 = subtree_min_char(node1);
-	min2 = subtree_min_char(node2);
-
-	if (min1 < min2)
-		return (-1);
-
-	if (min1 > min2)
 		return (1);
 
 	return (0);
