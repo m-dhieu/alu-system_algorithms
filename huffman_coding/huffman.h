@@ -36,7 +36,7 @@ int huffman_extract_and_insert(heap_t *priority_queue);
 /* Task 8: Build a Huffman tree */
 binary_tree_node_t *huffman_tree(char *data, size_t *freq, size_t size);
 /* Free Huffman tree */
-void free_huffman_tree(binary_tree_node_t *root);
+/* void free_huffman_tree(binary_tree_node_t *root); */
 /* Task 9: Huffman codes */
 int huffman_codes(char *data, size_t *freq, size_t size);
 

@@ -65,7 +65,7 @@ int huffman_codes(char *data, size_t *freq, size_t size)
 	print_codes_recursive(root, code, 0);
 
 	/* Free the tree */
-	free_huffman_tree(root);
+	/* free_huffman_tree(root); */
 
 	return (1);
 }
