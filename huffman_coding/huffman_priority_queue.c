@@ -2,7 +2,7 @@
 #include "huffman.h"
 
 /**
- * symbol_cmp - Compares two nested symbol nodes by frequency
+ * symbol_cmp - Compares two nested symbol nodes
  *
  * @p1: First nested node
  * @p2: Second nested node
@@ -25,6 +25,12 @@ static int symbol_cmp(void *p1, void *p2)
 		return (-1);
 
 	if (symbol1->freq > symbol2->freq)
+		return (1);
+
+	if (symbol1->data < symbol2->data)
+		return (-1);
+
+	if (symbol1->data > symbol2->data)
 		return (1);
 
 	return (0);
