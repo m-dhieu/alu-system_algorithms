@@ -50,7 +50,7 @@ binary_tree_node_t *huffman_tree(char *data, size_t *freq, size_t size)
 		}
 	}
 
-	root = (binary_tree_node_t *)heap_extract(priority_queue);
+	root = heap_extract(priority_queue);
 	free(priority_queue);
 
 	return (root);

@@ -21,6 +21,23 @@ static void free_nested(void *data)
 }
 
 /**
+ * free_tree - Frees a binary tree recursively
+ *
+ * @node: Root of the tree
+ *
+ * Return: Nothing
+ */
+static void free_tree(binary_tree_node_t *node)
+{
+	if (node == NULL)
+		return;
+
+	free_tree(node->left);
+	free_tree(node->right);
+	free_nested(node);
+}
+
+/**
  * create_parent - Creates a parent node for two nested nodes
  *
  * @left: First extracted node
@@ -29,7 +46,7 @@ static void free_nested(void *data)
  * Return: Pointer to the created parent node, or NULL on failure
  */
 static binary_tree_node_t *create_parent(binary_tree_node_t *left,
-					 binary_tree_node_t *right)
+		binary_tree_node_t *right)
 {
 	binary_tree_node_t *parent;
 	symbol_t *left_symbol;
@@ -81,22 +98,22 @@ int huffman_extract_and_insert(heap_t *priority_queue)
 
 	if (left == NULL || right == NULL)
 	{
-		free_nested(left);
-		free_nested(right);
+		free_tree(left);
+		free_tree(right);
 		return (0);
 	}
 
 	parent = create_parent(left, right);
 	if (parent == NULL)
 	{
-		free_nested(left);
-		free_nested(right);
+		free_tree(left);
+		free_tree(right);
 		return (0);
 	}
 
 	if (heap_insert(priority_queue, parent) == NULL)
 	{
-		free_nested(parent);
+		free_tree(parent);
 		return (0);
 	}
 
