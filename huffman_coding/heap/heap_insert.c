@@ -6,6 +6,8 @@
  *
  * @heap: Pointer to the heap
  * @node: Node to bubble up
+ *
+ * Return: Nothing
  */
 static void heapify_up(heap_t *heap, binary_tree_node_t *node)
 {
@@ -28,18 +30,18 @@ static void heapify_up(heap_t *heap, binary_tree_node_t *node)
 }
 
 /**
- * find_insert_parent - Find parent node for level-order insertion
+ * find_insert_parent - Finds the insertion parent in level order
  *
  * @root: Root of the heap
  *
- * Return: Pointer to parent where new node should be attached
+ * Return: Pointer to the insertion parent, or NULL
  */
 static binary_tree_node_t *find_insert_parent(binary_tree_node_t *root)
 {
 	binary_tree_node_t *queue[1024];
+	binary_tree_node_t *node;
 	size_t head;
 	size_t tail;
-	binary_tree_node_t *node;
 
 	if (root == NULL)
 		return (NULL);
@@ -59,14 +61,14 @@ static binary_tree_node_t *find_insert_parent(binary_tree_node_t *root)
 		queue[tail++] = node->right;
 	}
 
-	return (node);
+	return (NULL);
 }
 
 /**
- * heap_insert - Inserts a value in a Min Binary Heap
+ * heap_insert - Inserts a value in a min binary heap
  *
  * @heap: Pointer to the heap
- * @data: Pointer to the data to store in the new node
+ * @data: Pointer to the data to store
  *
  * Return: Pointer to the created node, or NULL on failure
  */
@@ -85,7 +87,7 @@ binary_tree_node_t *heap_insert(heap_t *heap, void *data)
 	if (heap->root == NULL)
 	{
 		heap->root = new_node;
-		heap->size++;
+		heap->size = 1;
 		return (new_node);
 	}
 
@@ -96,19 +98,15 @@ binary_tree_node_t *heap_insert(heap_t *heap, void *data)
 		return (NULL);
 	}
 
+	new_node->parent = parent;
 	if (parent->left == NULL)
-	{
 		parent->left = new_node;
-		new_node->parent = parent;
-	}
 	else
-	{
 		parent->right = new_node;
-		new_node->parent = parent;
-	}
 
-	heapify_up(heap, new_node);
 	heap->size++;
+	heapify_up(heap, new_node);
+
 	return (new_node);
 }
 

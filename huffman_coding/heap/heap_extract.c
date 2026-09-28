@@ -6,7 +6,7 @@
  *
  * @root: Root of the heap
  *
- * Return: Pointer to the last node, or NULL if none
+ * Return: Pointer to the last node, or NULL
  */
 static binary_tree_node_t *find_last_node(binary_tree_node_t *root)
 {
@@ -37,15 +37,15 @@ static binary_tree_node_t *find_last_node(binary_tree_node_t *root)
 }
 
 /**
- * find_parent_of - Finds the parent of a given node
+ * find_parent_of - Finds the parent of a node
  *
  * @root: Root of the heap
  * @node: Node whose parent is required
  *
- * Return: Pointer to the parent, or NULL if none
+ * Return: Pointer to the parent, or NULL
  */
 static binary_tree_node_t *find_parent_of(binary_tree_node_t *root,
-					  binary_tree_node_t *node)
+		binary_tree_node_t *node)
 {
 	binary_tree_node_t *queue[1024];
 	binary_tree_node_t *current;
@@ -87,23 +87,19 @@ static binary_tree_node_t *find_parent_of(binary_tree_node_t *root,
 static void heapify_down(heap_t *heap, binary_tree_node_t *node)
 {
 	binary_tree_node_t *smallest;
-	binary_tree_node_t *left;
-	binary_tree_node_t *right;
 	void *tmp;
 
 	while (node != NULL)
 	{
 		smallest = node;
-		left = node->left;
-		right = node->right;
 
-		if (left != NULL &&
-		    heap->data_cmp(left->data, smallest->data) < 0)
-			smallest = left;
+		if (node->left != NULL &&
+			heap->data_cmp(node->left->data, smallest->data) < 0)
+			smallest = node->left;
 
-		if (right != NULL &&
-		    heap->data_cmp(right->data, smallest->data) < 0)
-			smallest = right;
+		if (node->right != NULL &&
+			heap->data_cmp(node->right->data, smallest->data) < 0)
+			smallest = node->right;
 
 		if (smallest == node)
 			break;
@@ -120,7 +116,7 @@ static void heapify_down(heap_t *heap, binary_tree_node_t *node)
  *
  * @heap: Pointer to the heap
  *
- * Return: Data stored in the removed node, or NULL on failure
+ * Return: Data stored in the removed node, or NULL
  */
 static void *remove_last_node(heap_t *heap)
 {
@@ -154,7 +150,7 @@ static void *remove_last_node(heap_t *heap)
  *
  * @heap: Pointer to the heap
  *
- * Return: Pointer to the root data, or NULL on failure
+ * Return: Pointer to the root data, or NULL
  */
 void *heap_extract(heap_t *heap)
 {
