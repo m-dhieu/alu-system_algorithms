@@ -91,9 +91,11 @@ static void relax_edges(dijkstra_data_t *data, size_t current)
 		next = vertex_index(data, edge->dest);
 		if (next == data->count || data->visited[next])
 			continue;
-		if (edge->weight > ULONG_MAX - data->distance[current])
+		if (edge->weight < 0 ||
+		    (unsigned long)edge->weight >
+		    ULONG_MAX - data->distance[current])
 			continue;
-		candidate = data->distance[current] + edge->weight;
+		candidate = data->distance[current] + (unsigned long)edge->weight;
 		if (candidate < data->distance[next])
 		{
 			data->distance[next] = candidate;
@@ -129,11 +131,17 @@ static queue_t *build_path(dijkstra_data_t *data, size_t target)
 		if (current == data->count)
 			break;
 	}
-	if (indices[length - 1] != data->start_index)
-		return (free(indices), NULL);
+	if (!length || indices[length - 1] != data->start_index)
+	{
+		free(indices);
+		return (NULL);
+	}
 	queue = queue_create();
 	if (!queue)
-		return (free(indices), NULL);
+	{
+		free(indices);
+		return (NULL);
+	}
 	for (i = length; i > 0; i--)
 	{
 		name = malloc(strlen(data->vertices[indices[i - 1]]->content) + 1);
@@ -151,7 +159,7 @@ static queue_t *build_path(dijkstra_data_t *data, size_t target)
 		return (queue);
 	while ((name = dequeue(queue)) != NULL)
 		free(name);
-	free(queue);
+	queue_delete(queue);
 	return (NULL);
 }
 
