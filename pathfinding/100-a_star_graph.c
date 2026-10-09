@@ -142,21 +142,58 @@ fail:
 
 /**
  * search_path - Searches for the shortest path using A*
+ * @vertices: Array of graph vertices
+ * @distance: Array of actual distances
+ * @visited: Array marking visited vertices
+ * @previous: Array of predecessor indices
+ * @count: Number of vertices
+ * @start: Starting vertex index
+ * @target: Target vertex index
+ * @target_vertex: Target vertex
+ *
+ * Return: Queue containing the path, or NULL if no path exists
+ */
+static queue_t *search_path(vertex_t **vertices, unsigned long *distance,
+			    char *visited, size_t *previous, size_t count,
+			    size_t start, size_t target,
+			    vertex_t const *target_vertex)
+{
+	size_t current;
+	queue_t *path = NULL;
+
+	distance[start] = 0;
+	while ((current = select_min(vertices, distance, visited, count,
+				     target_vertex)) != count)
+	{
+		if (current == target)
+			break;
+		relax_edges(vertices, distance, previous, visited, count,
+			    current);
+	}
+	if (distance[target] != ULONG_MAX)
+		path = build_path(vertices, previous, count, start, target);
+	return (path);
+}
+
+/**
+ * a_star_graph - Finds the shortest path using the A* algorithm
  * @graph: Graph to search
  * @start: Starting vertex
  * @target: Target vertex
  *
- * Return: Queue containing the path, or NULL if no path exists
+ * Return: Queue of allocated vertex names, or NULL on failure
  */
-static queue_t *search_path(graph_t *graph, vertex_t const *start,
-			    vertex_t const *target)
+queue_t *a_star_graph(graph_t *graph, vertex_t const *start,
+		      vertex_t const *target)
 {
 	vertex_t **vertices, *vertex;
 	unsigned long *distance;
-	size_t *previous, count, i, s = 0, t = 0, current;
+	size_t *previous, count, i, s = 0, t = 0;
 	char *visited;
 	queue_t *path = NULL;
 
+	if (!graph || !start || !target || !graph->nb_vertices)
+		return (NULL);
 	count = graph->nb_vertices;
 	vertices = malloc(count * sizeof(*vertices));
 	distance = malloc(count * sizeof(*distance));
@@ -175,19 +212,9 @@ static queue_t *search_path(graph_t *graph, vertex_t const *start,
 		if (vertex == target)
 			t = i;
 	}
-	if (i != count)
-		goto cleanup;
-	distance[s] = 0;
-	while ((current = select_min(vertices, distance, visited, count,
-				     target)) != count)
-	{
-		if (current == t)
-			break;
-		relax_edges(vertices, distance, previous, visited,
-			    count, current);
-	}
-	if (distance[t] != ULONG_MAX)
-		path = build_path(vertices, previous, count, s, t);
+	if (i == count)
+		path = search_path(vertices, distance, visited, previous,
+				   count, s, t, target);
 
 cleanup:
 	free(vertices);
@@ -195,20 +222,4 @@ cleanup:
 	free(visited);
 	free(previous);
 	return (path);
-}
-
-/**
- * a_star_graph - Finds the shortest path using the A* algorithm
- * @graph: Graph to search
- * @start: Starting vertex
- * @target: Target vertex
- *
- * Return: Queue of allocated vertex names, or NULL on failure
- */
-queue_t *a_star_graph(graph_t *graph, vertex_t const *start,
-		      vertex_t const *target)
-{
-	if (!graph || !start || !target || !graph->nb_vertices)
-		return (NULL);
-	return (search_path(graph, start, target));
 }
