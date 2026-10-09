@@ -117,8 +117,17 @@ static queue_t *build_path(vertex_t **vertices, size_t *previous,
 		if (current == count)
 			break;
 	}
-	if (indices[length - 1] != start || !(path = queue_create()))
-		return (free(indices), NULL);
+	if (indices[length - 1] != start)
+	{
+		free(indices);
+		return (NULL);
+	}
+	path = queue_create();
+	if (!path)
+	{
+		free(indices);
+		return (NULL);
+	}
 	for (i = length; i > 0; i--)
 	{
 		name = strdup(vertices[indices[i - 1]]->content);
@@ -137,6 +146,55 @@ static queue_t *build_path(vertex_t **vertices, size_t *previous,
 }
 
 /**
+ * search_path - Finds the shortest path using Dijkstra's algorithm
+ * @vertices: Array of graph vertices
+ * @count: Number of vertices
+ * @start: Starting vertex index
+ * @target: Target vertex index
+ * @start_name: Starting vertex name
+ *
+ * Return: Queue of allocated vertex names, or NULL if no path exists
+ */
+static queue_t *search_path(vertex_t **vertices, size_t count,
+			    size_t start, size_t target,
+			    char const *start_name)
+{
+	unsigned long *distance;
+	char *visited;
+	size_t *previous;
+	size_t i, current;
+	queue_t *path = NULL;
+
+	distance = malloc(count * sizeof(*distance));
+	visited = calloc(count, sizeof(*visited));
+	previous = malloc(count * sizeof(*previous));
+	if (!distance || !visited || !previous)
+		goto cleanup;
+	for (i = 0; i < count; i++)
+	{
+		distance[i] = ULONG_MAX;
+		previous[i] = count;
+	}
+	distance[start] = 0;
+	while ((current = select_min(vertices, distance, visited,
+				     count, start_name)) != count)
+	{
+		if (current == target)
+			break;
+		relax_edges(vertices, distance, previous, visited,
+			    count, current);
+	}
+	if (distance[target] != ULONG_MAX)
+		path = build_path(vertices, previous, count, start, target);
+
+cleanup:
+	free(distance);
+	free(visited);
+	free(previous);
+	return (path);
+}
+
+/**
  * dijkstra_graph - Finds the shortest path between two graph vertices
  * @graph: Graph to search
  * @start: Starting vertex
@@ -147,50 +205,27 @@ static queue_t *build_path(vertex_t **vertices, size_t *previous,
 queue_t *dijkstra_graph(graph_t *graph, vertex_t const *start,
 			vertex_t const *target)
 {
-	vertex_t **vertices = NULL, *vertex;
-	unsigned long *distance = NULL;
-	char *visited = NULL;
-	size_t *previous = NULL, count, i, s, t, current;
+	vertex_t **vertices, *vertex;
+	size_t count, i, s, t;
 	queue_t *path = NULL;
 
 	if (!graph || !start || !target || !graph->nb_vertices)
 		return (NULL);
 	count = graph->nb_vertices;
 	vertices = malloc(count * sizeof(*vertices));
-	distance = malloc(count * sizeof(*distance));
-	visited = calloc(count, sizeof(*visited));
-	previous = malloc(count * sizeof(*previous));
-	if (!vertices || !distance || !visited || !previous)
-		goto cleanup;
+	if (!vertices)
+		return (NULL);
 	for (i = 0, vertex = graph->vertices; i < count && vertex;
 	     i++, vertex = vertex->next)
-	{
 		vertices[i] = vertex;
-		distance[i] = ULONG_MAX;
-		previous[i] = count;
-	}
 	if (i != count)
 		goto cleanup;
 	s = vertex_index(vertices, count, start);
 	t = vertex_index(vertices, count, target);
-	if (s == count || t == count)
-		goto cleanup;
-	distance[s] = 0;
-	while ((current = select_min(vertices, distance, visited, count,
-				     start->content)) != count)
-	{
-		if (current == t)
-			break;
-		relax_edges(vertices, distance, previous, visited, count,
-			    current);
-	}
-	if (distance[t] != ULONG_MAX)
-		path = build_path(vertices, previous, count, s, t);
+	if (s != count && t != count)
+		path = search_path(vertices, count, s, t, start->content);
 
 cleanup:
 	free(vertices);
-	free(distance);
-	free(visited);
-	free(previous);
 	return (path);
 }
