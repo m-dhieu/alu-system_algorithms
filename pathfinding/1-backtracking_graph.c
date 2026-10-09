@@ -6,9 +6,9 @@
 
 /**
  * struct search_s - State used by the recursive graph search
- * @path: Queue holding the path found so far
  * @visited: Names of vertices already explored
  * @count: Number of recorded vertex names
+ * @path: Queue holding the path found so far
  */
 typedef struct search_s
 {
@@ -56,7 +56,7 @@ static int visit_vertex(search_t *search, const vertex_t *vertex)
 		return (-1);
 
 	search->visited = new_visited;
-	search->visited[search->count] = (char *)vertex->content;
+	search->visited[search->count] = vertex->content;
 	search->count++;
 	printf("Checking %s\n", vertex->content);
 	return (1);
@@ -68,7 +68,7 @@ static int visit_vertex(search_t *search, const vertex_t *vertex)
  * @current: Vertex currently being explored
  * @target: Destination vertex
  *
- * Return: 1 if a path was found, otherwise 0
+ * Return: 1 if a path was found, 0 if not found, or -1 on failure
  */
 static int search_path(search_t *search, const vertex_t *current,
 		       const vertex_t *target)
@@ -79,16 +79,16 @@ static int search_path(search_t *search, const vertex_t *current,
 
 	result = visit_vertex(search, current);
 	if (result <= 0)
-		return (0);
+		return (result);
 
 	name = strdup(current->content);
 	if (!name)
-		return (0);
+		return (-1);
 
-	if (enqueue(search->path, name) == QUEUE_FAILURE)
+	if (!queue_push_back(search->path, name))
 	{
 		free(name);
-		return (0);
+		return (-1);
 	}
 
 	if (current == target)
@@ -96,8 +96,14 @@ static int search_path(search_t *search, const vertex_t *current,
 
 	for (edge = current->edges; edge; edge = edge->next)
 	{
-		if (search_path(search, edge->dest, target))
+		result = search_path(search, edge->dest, target);
+		if (result == 1)
 			return (1);
+		if (result == -1)
+		{
+			free(dequeue(search->path));
+			return (-1);
+		}
 	}
 
 	free(dequeue(search->path));
@@ -116,6 +122,7 @@ queue_t *backtracking_graph(graph_t *graph, vertex_t const *start,
 			    vertex_t const *target)
 {
 	search_t search;
+	int result;
 
 	if (!graph || !start || !target)
 		return (NULL);
@@ -127,14 +134,16 @@ queue_t *backtracking_graph(graph_t *graph, vertex_t const *start,
 	search.visited = NULL;
 	search.count = 0;
 
-	if (!search_path(&search, start, target))
-	{
-		while (search.path->front)
-			free(dequeue(search.path));
-		free(search.path);
-		search.path = NULL;
-	}
+	result = search_path(&search, start, target);
 
 	free(search.visited);
+
+	if (result != 1)
+	{
+		queue_delete(search.path);
+		return (NULL);
+	}
+
 	return (search.path);
 }
+
