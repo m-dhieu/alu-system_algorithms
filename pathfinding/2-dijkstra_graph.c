@@ -5,25 +5,6 @@
 #include "pathfinding.h"
 
 /**
- * vertex_index - Finds a vertex's index in an array
- * @vertices: Array of graph vertices
- * @count: Number of vertices
- * @vertex: Vertex to find
- *
- * Return: Vertex index, or count if not found
- */
-static size_t vertex_index(vertex_t **vertices, size_t count,
-			   vertex_t const *vertex)
-{
-	size_t i;
-
-	for (i = 0; i < count; i++)
-		if (vertices[i] == vertex)
-			return (i);
-	return (count);
-}
-
-/**
  * select_min - Selects the unvisited vertex with minimum distance
  * @vertices: Array of graph vertices
  * @distance: Array of distances
@@ -68,12 +49,17 @@ static void relax_edges(vertex_t **vertices, unsigned long *distance,
 			size_t current)
 {
 	edge_t *edge;
-	size_t next;
+	size_t next, i;
 	unsigned long candidate;
 
 	for (edge = vertices[current]->edges; edge; edge = edge->next)
 	{
-		next = vertex_index(vertices, count, edge->dest);
+		for (next = count, i = 0; i < count; i++)
+			if (vertices[i] == edge->dest)
+			{
+				next = i;
+				break;
+			}
 		if (next == count || visited[next] || edge->weight < 0)
 			continue;
 		if ((unsigned long)edge->weight >
@@ -118,16 +104,10 @@ static queue_t *build_path(vertex_t **vertices, size_t *previous,
 			break;
 	}
 	if (indices[length - 1] != start)
-	{
-		free(indices);
-		return (NULL);
-	}
+		goto fail;
 	path = queue_create();
 	if (!path)
-	{
-		free(indices);
-		return (NULL);
-	}
+		goto fail;
 	for (i = length; i > 0; i--)
 	{
 		name = strdup(vertices[indices[i - 1]]->content);
@@ -137,12 +117,15 @@ static queue_t *build_path(vertex_t **vertices, size_t *previous,
 			while ((name = dequeue(path)) != NULL)
 				free(name);
 			queue_delete(path);
-			free(indices);
-			return (NULL);
+			goto fail;
 		}
 	}
 	free(indices);
 	return (path);
+
+fail:
+	free(indices);
+	return (NULL);
 }
 
 /**
@@ -206,8 +189,9 @@ queue_t *dijkstra_graph(graph_t *graph, vertex_t const *start,
 			vertex_t const *target)
 {
 	vertex_t **vertices, *vertex;
-	size_t count, i, s, t;
+	size_t count, i, s = 0, t = 0;
 	queue_t *path = NULL;
+	int found_start = 0, found_target = 0;
 
 	if (!graph || !start || !target || !graph->nb_vertices)
 		return (NULL);
@@ -217,15 +201,21 @@ queue_t *dijkstra_graph(graph_t *graph, vertex_t const *start,
 		return (NULL);
 	for (i = 0, vertex = graph->vertices; i < count && vertex;
 	     i++, vertex = vertex->next)
+	{
 		vertices[i] = vertex;
-	if (i != count)
-		goto cleanup;
-	s = vertex_index(vertices, count, start);
-	t = vertex_index(vertices, count, target);
-	if (s != count && t != count)
+		if (vertex == start)
+		{
+			s = i;
+			found_start = 1;
+		}
+		if (vertex == target)
+		{
+			t = i;
+			found_target = 1;
+		}
+	}
+	if (i == count && found_start && found_target)
 		path = search_path(vertices, count, s, t, start->content);
-
-cleanup:
 	free(vertices);
 	return (path);
 }
