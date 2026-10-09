@@ -1,49 +1,10 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "pathfinding.h"
 
-static int search_path(char **map, int rows, int cols, point_t current,
-		       point_t const *target, char **visited,
-		       path_node_t **path);
-
 /**
- * free_path - Frees a temporary path
- * @path: Temporary path to free
- */
-static void free_path(path_node_t *path)
-{
-	path_node_t *next;
-
-	while (path)
-	{
-		next = path->next;
-		free(path);
-		path = next;
-	}
-}
-
-/**
- * add_path_node - Adds a point to the temporary path
- * @path: Address of the temporary path
- * @current: Point to store
- *
- * Return: New path node, or NULL on failure
- */
-static path_node_t *add_path_node(path_node_t **path, point_t current)
-{
-	path_node_t *node;
-
-	node = malloc(sizeof(*node));
-	if (!node)
-		return (NULL);
-	node->point = current;
-	node->next = *path;
-	*path = node;
-	return (node);
-}
-
-/**
- * search_right - Recursively checks the right neighbour
+ * search_path - Recursively searches for a path to the target
  * @map: Map to search
  * @rows: Number of rows
  * @cols: Number of columns
@@ -52,147 +13,44 @@ static path_node_t *add_path_node(path_node_t **path, point_t current)
  * @visited: Visited-cell map
  * @path: Address of the temporary path
  *
- * Return: 1 if a route is found, otherwise 0
- */
-static int search_right(char **map, int rows, int cols, point_t current,
-			point_t const *target, char **visited,
-			path_node_t **path)
-{
-	point_t next;
-
-	if (current.x + 1 >= cols || map[current.y][current.x + 1] != '0' ||
-	    visited[current.y][current.x + 1])
-		return (0);
-	next.x = current.x + 1;
-	next.y = current.y;
-	return (search_path(map, rows, cols, next, target, visited, path));
-}
-
-/**
- * search_down - Recursively checks the bottom neighbour
- * @map: Map to search
- * @rows: Number of rows
- * @cols: Number of columns
- * @current: Current coordinates
- * @target: Target coordinates
- * @visited: Visited-cell map
- * @path: Address of the temporary path
- *
- * Return: 1 if a route is found, otherwise 0
- */
-static int search_down(char **map, int rows, int cols, point_t current,
-		       point_t const *target, char **visited,
-		       path_node_t **path)
-{
-	point_t next;
-
-	if (current.y + 1 >= rows || map[current.y + 1][current.x] != '0' ||
-	    visited[current.y + 1][current.x])
-		return (0);
-	next.x = current.x;
-	next.y = current.y + 1;
-	return (search_path(map, rows, cols, next, target, visited, path));
-}
-
-/**
- * search_left - Recursively checks the left neighbour
- * @map: Map to search
- * @rows: Number of rows
- * @cols: Number of columns
- * @current: Current coordinates
- * @target: Target coordinates
- * @visited: Visited-cell map
- * @path: Address of the temporary path
- *
- * Return: 1 if a route is found, otherwise 0
- */
-static int search_left(char **map, int rows, int cols, point_t current,
-		       point_t const *target, char **visited,
-		       path_node_t **path)
-{
-	point_t next;
-
-	if (current.x <= 0 || map[current.y][current.x - 1] != '0' ||
-	    visited[current.y][current.x - 1])
-		return (0);
-	next.x = current.x - 1;
-	next.y = current.y;
-	return (search_path(map, rows, cols, next, target, visited, path));
-}
-
-/**
- * search_up - Recursively checks the top neighbour
- * @map: Map to search
- * @rows: Number of rows
- * @cols: Number of columns
- * @current: Current coordinates
- * @target: Target coordinates
- * @visited: Visited-cell map
- * @path: Address of the temporary path
- *
- * Return: 1 if a route is found, otherwise 0
- */
-static int search_up(char **map, int rows, int cols, point_t current,
-		     point_t const *target, char **visited,
-		     path_node_t **path)
-{
-	point_t next;
-
-	if (current.y <= 0 || map[current.y - 1][current.x] != '0' ||
-	    visited[current.y - 1][current.x])
-		return (0);
-	next.x = current.x;
-	next.y = current.y - 1;
-	return (search_path(map, rows, cols, next, target, visited, path));
-}
-
-/**
- * search_path - Recursively searches for a route to the target
- * @map: Map to search
- * @rows: Number of rows
- * @cols: Number of columns
- * @current: Current coordinates
- * @target: Target coordinates
- * @visited: Visited-cell map
- * @path: Address of the temporary path
- *
- * Return: 1 if a route is found, otherwise 0
+ * Return: 1 if a path is found, otherwise 0
  */
 static int search_path(char **map, int rows, int cols, point_t current,
 		       point_t const *target, char **visited,
 		       path_node_t **path)
 {
+	int dx[] = {1, 0, -1, 0};
+	int dy[] = {0, 1, 0, -1};
+	int i, x, y;
 	path_node_t *node;
+	point_t next;
 
 	printf("Checking coordinates [%d, %d]\n", current.x, current.y);
 	visited[current.y][current.x] = 1;
-	node = add_path_node(path, current);
+	node = malloc(sizeof(*node));
 	if (!node)
 		return (0);
+	node->point = current;
+	node->next = *path;
+	*path = node;
 	if (current.x == target->x && current.y == target->y)
 		return (1);
-	if (search_right(map, rows, cols, current, target, visited, path) ||
-	    search_down(map, rows, cols, current, target, visited, path) ||
-	    search_left(map, rows, cols, current, target, visited, path) ||
-	    search_up(map, rows, cols, current, target, visited, path))
-		return (1);
+	for (i = 0; i < 4; i++)
+	{
+		x = current.x + dx[i];
+		y = current.y + dy[i];
+		if (x < 0 || x >= cols || y < 0 || y >= rows)
+			continue;
+		if (map[y][x] != '0' || visited[y][x])
+			continue;
+		next.x = x;
+		next.y = y;
+		if (search_path(map, rows, cols, next, target, visited, path))
+			return (1);
+	}
 	*path = node->next;
 	free(node);
 	return (0);
-}
-
-/**
- * free_visited - Frees the visited-cell map
- * @visited: Visited-cell map
- * @rows: Number of rows
- */
-static void free_visited(char **visited, int rows)
-{
-	int i;
-
-	for (i = 0; i < rows; i++)
-		free(visited[i]);
-	free(visited);
 }
 
 /**
@@ -243,17 +101,20 @@ static queue_t *path_to_queue(path_node_t *path)
 	{
 		point = malloc(sizeof(*point));
 		if (!point)
-		{
-			queue_delete(queue);
-			return (NULL);
-		}
+			break;
 		*point = node->point;
 		if (!queue_push_front(queue, point))
 		{
 			free(point);
-			queue_delete(queue);
-			return (NULL);
+			break;
 		}
+	}
+	if (node)
+	{
+		while ((point = dequeue(queue)) != NULL)
+			free(point);
+		queue_delete(queue);
+		return (NULL);
 	}
 	return (queue);
 }
@@ -295,8 +156,9 @@ queue_t *backtracking_array(char **map, int rows, int cols,
 			    point_t const *start, point_t const *target)
 {
 	char **visited;
-	path_node_t *path;
+	path_node_t *path, *next;
 	queue_t *queue;
+	int i, found;
 
 	if (!valid_points(map, rows, cols, start, target))
 		return (NULL);
@@ -304,13 +166,26 @@ queue_t *backtracking_array(char **map, int rows, int cols,
 	if (!visited)
 		return (NULL);
 	path = NULL;
-	if (!search_path(map, rows, cols, *start, target, visited, &path))
+	found = search_path(map, rows, cols, *start, target, visited, &path);
+	for (i = 0; i < rows; i++)
+		free(visited[i]);
+	free(visited);
+	if (!found)
 	{
-		free_visited(visited, rows);
+		while (path)
+		{
+			next = path->next;
+			free(path);
+			path = next;
+		}
 		return (NULL);
 	}
 	queue = path_to_queue(path);
-	free_path(path);
-	free_visited(visited, rows);
+	while (path)
+	{
+		next = path->next;
+		free(path);
+		path = next;
+	}
 	return (queue);
 }
