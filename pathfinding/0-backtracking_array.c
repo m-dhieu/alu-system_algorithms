@@ -2,9 +2,13 @@
 #include <stdlib.h>
 #include "pathfinding.h"
 
+static int search_path(char **map, int rows, int cols, point_t current,
+		       point_t const *target, char **visited,
+		       path_node_t **path);
+
 /**
  * free_path - Frees a temporary path
- * @path: Path to free
+ * @path: Temporary path to free
  */
 static void free_path(path_node_t *path)
 {
@@ -20,10 +24,10 @@ static void free_path(path_node_t *path)
 
 /**
  * add_path_node - Adds a point to the temporary path
- * @path: Address of the path head
- * @current: Point to add
+ * @path: Address of the temporary path
+ * @current: Point to store
  *
- * Return: Pointer to the new node, or NULL on failure
+ * Return: New path node, or NULL on failure
  */
 static path_node_t *add_path_node(path_node_t **path, point_t current)
 {
@@ -39,7 +43,7 @@ static path_node_t *add_path_node(path_node_t **path, point_t current)
 }
 
 /**
- * search_right - Checks the right neighbour
+ * search_right - Recursively checks the right neighbour
  * @map: Map to search
  * @rows: Number of rows
  * @cols: Number of columns
@@ -65,7 +69,7 @@ static int search_right(char **map, int rows, int cols, point_t current,
 }
 
 /**
- * search_down - Checks the bottom neighbour
+ * search_down - Recursively checks the bottom neighbour
  * @map: Map to search
  * @rows: Number of rows
  * @cols: Number of columns
@@ -91,7 +95,7 @@ static int search_down(char **map, int rows, int cols, point_t current,
 }
 
 /**
- * search_left - Checks the left neighbour
+ * search_left - Recursively checks the left neighbour
  * @map: Map to search
  * @rows: Number of rows
  * @cols: Number of columns
@@ -117,7 +121,7 @@ static int search_left(char **map, int rows, int cols, point_t current,
 }
 
 /**
- * search_up - Checks the top neighbour
+ * search_up - Recursively checks the top neighbour
  * @map: Map to search
  * @rows: Number of rows
  * @cols: Number of columns
@@ -196,7 +200,7 @@ static void free_visited(char **visited, int rows)
  * @rows: Number of rows
  * @cols: Number of columns
  *
- * Return: The allocated map, or NULL on failure
+ * Return: Allocated map, or NULL on failure
  */
 static char **create_visited(int rows, int cols)
 {
@@ -255,7 +259,7 @@ static queue_t *path_to_queue(path_node_t *path)
 }
 
 /**
- * valid_points - Checks the start and target coordinates
+ * valid_points - Checks the starting and target coordinates
  * @map: Map to check
  * @rows: Number of rows
  * @cols: Number of columns
