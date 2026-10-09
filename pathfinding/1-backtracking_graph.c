@@ -5,32 +5,20 @@
 #include "pathfinding.h"
 
 /**
- * struct search_s - State used by the recursive graph search
- * @visited: Names of vertices already explored
- * @count: Number of recorded vertex names
- * @path: Queue holding the path found so far
- */
-typedef struct search_s
-{
-	char **visited;
-	size_t count;
-	queue_t *path;
-} search_t;
-
-/**
  * is_visited - Checks whether a vertex name has been recorded
- * @search: Search state
+ * @visited: Array of visited vertex names
+ * @count: Number of recorded vertex names
  * @name: Vertex name to check
  *
  * Return: 1 if already recorded, otherwise 0
  */
-static int is_visited(search_t *search, const char *name)
+static int is_visited(char **visited, size_t count, const char *name)
 {
 	size_t i;
 
-	for (i = 0; i < search->count; i++)
+	for (i = 0; i < count; i++)
 	{
-		if (strcmp(search->visited[i], name) == 0)
+		if (strcmp(visited[i], name) == 0)
 			return (1);
 	}
 	return (0);
@@ -38,46 +26,76 @@ static int is_visited(search_t *search, const char *name)
 
 /**
  * visit_vertex - Records and prints a vertex if it is new
- * @search: Search state
+ * @visited: Address of the visited vertex array
+ * @count: Address of the number of recorded names
  * @vertex: Vertex to record
  *
  * Return: 1 if recorded, 0 if already visited, or -1 on failure
  */
-static int visit_vertex(search_t *search, const vertex_t *vertex)
+static int visit_vertex(char ***visited, size_t *count,
+			const vertex_t *vertex)
 {
 	char **new_visited;
 
-	if (is_visited(search, vertex->content))
+	if (is_visited(*visited, *count, vertex->content))
 		return (0);
 
-	new_visited = realloc(search->visited,
-			      (search->count + 1) * sizeof(*search->visited));
+	new_visited = realloc(*visited, (*count + 1) * sizeof(**visited));
 	if (!new_visited)
 		return (-1);
 
-	search->visited = new_visited;
-	search->visited[search->count] = vertex->content;
-	search->count++;
+	*visited = new_visited;
+	(*visited)[*count] = vertex->content;
+	(*count)++;
 	printf("Checking %s\n", vertex->content);
 	return (1);
 }
 
 /**
+ * remove_path_back - Removes the last node from a path queue
+ * @path: Queue representing the current path
+ *
+ * Return: Pointer to the removed data, or NULL if empty
+ */
+static void *remove_path_back(queue_t *path)
+{
+	queue_node_t *node;
+	void *data;
+
+	if (!path || !path->back)
+		return (NULL);
+
+	node = path->back;
+	data = node->ptr;
+	path->back = node->prev;
+
+	if (path->back)
+		path->back->next = NULL;
+	else
+		path->front = NULL;
+
+	free(node);
+	return (data);
+}
+
+/**
  * search_path - Recursively searches adjacent vertices
- * @search: Search state
+ * @visited: Address of the visited vertex array
+ * @count: Address of the number of recorded names
+ * @path: Queue holding the current path
  * @current: Vertex currently being explored
  * @target: Destination vertex
  *
- * Return: 1 if a path was found, 0 if not found, or -1 on failure
+ * Return: 1 if found, 0 if not found, or -1 on failure
  */
-static int search_path(search_t *search, const vertex_t *current,
-		       const vertex_t *target)
+static int search_path(char ***visited, size_t *count, queue_t *path,
+		       const vertex_t *current, const vertex_t *target)
 {
 	edge_t *edge;
 	char *name;
 	int result;
 
-	result = visit_vertex(search, current);
+	result = visit_vertex(visited, count, current);
 	if (result <= 0)
 		return (result);
 
@@ -85,7 +103,7 @@ static int search_path(search_t *search, const vertex_t *current,
 	if (!name)
 		return (-1);
 
-	if (!queue_push_back(search->path, name))
+	if (!queue_push_back(path, name))
 	{
 		free(name);
 		return (-1);
@@ -96,17 +114,18 @@ static int search_path(search_t *search, const vertex_t *current,
 
 	for (edge = current->edges; edge; edge = edge->next)
 	{
-		result = search_path(search, edge->dest, target);
+		result = search_path(visited, count, path, edge->dest, target);
 		if (result == 1)
 			return (1);
+
 		if (result == -1)
 		{
-			free(dequeue(search->path));
+			free(remove_path_back(path));
 			return (-1);
 		}
 	}
 
-	free(dequeue(search->path));
+	free(remove_path_back(path));
 	return (0);
 }
 
@@ -121,29 +140,31 @@ static int search_path(search_t *search, const vertex_t *current,
 queue_t *backtracking_graph(graph_t *graph, vertex_t const *start,
 			    vertex_t const *target)
 {
-	search_t search;
+	char **visited;
+	size_t count;
+	queue_t *path;
 	int result;
 
 	if (!graph || !start || !target)
 		return (NULL);
 
-	search.path = queue_create();
-	if (!search.path)
+	path = queue_create();
+	if (!path)
 		return (NULL);
 
-	search.visited = NULL;
-	search.count = 0;
+	visited = NULL;
+	count = 0;
 
-	result = search_path(&search, start, target);
+	result = search_path(&visited, &count, path, start, target);
 
-	free(search.visited);
+	free(visited);
 
 	if (result != 1)
 	{
-		queue_delete(search.path);
+		queue_delete(path);
 		return (NULL);
 	}
 
-	return (search.path);
+	return (path);
 }
 
